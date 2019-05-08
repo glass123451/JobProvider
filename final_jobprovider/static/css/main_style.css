@@ -1,0 +1,57 @@
+body{
+    /* background-size: cover; */
+    /* background-image: url("pic/bgweb.jpg"); */
+    /* background-attachment: fixed; */
+    /* background-repeat: no-repeat; */
+    /* height: 100%; */
+    /* overflow: hidden; */
+    color: #24292e;
+    font-family: 'Work Sans', sans-serif;
+}
+
+/* set radius for button */
+.btn{
+    border-radius: 16px;
+}
+
+/* change default nav bg color */
+.bg-company-black {
+    background-color: #24292e !important;
+}
+
+/* on mouse hover nav dropdown will show item */
+.dropdown:hover>.dropdown-menu{
+    display: block;
+}
+
+.navbar .dropdown-menu{
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item{
+    color: white;
+}
+
+.dropdown-item:hover{
+    color: white;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.footer {
+    /* position: absolute; */
+    /* right: 0; */
+    /* bottom: 0; */
+    /* left: 0; */
+    padding: 1rem;
+    background-color: #efefef;
+    /* text-align: center; */
+}
+
+.logo{
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.logo:hover{
+    opacity: 0.5;
+}

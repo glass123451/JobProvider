@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+{% load static %}
+{% load crispy_forms_tags %}
+<html lang="en" class="h-100">
+<head>
+	<link rel="icon" href="{% static 'pic/job-logo.png' %}">
+	<title>JobProvider</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main_style.css' %}">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<style>
+		.main{
+			-webkit-animation: fadein 1.5s;
+		}
+		@keyframes fadein {
+			from { opacity: 0; }
+			to   { opacity: 1; }
+        }
+        
+        .btn{
+            border-radius: 0px;
+        }
+        
+        .btn-success{
+			border-radius: 16px;
+        }
+        
+        .bgimage {
+			width:100%;
+			height:500px;
+			background: url('{% static 'pic/mango.jpg' %}');
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size:cover;
+			background-attachment: fixed;
+		}
+		
+		.overlay {
+			color:White;
+			text-shadow:1px 1px #333;
+		}
+
+        .myAlert-top{
+            position: fixed;
+            top: 8px;
+            right:2%;
+            width: 30%;
+        }
+
+        .alert{
+            display: none;
+        }
+	</style>
+
+</head>
+
+<body class="h-100">
+	<div id="app" class="h-100">
+		<div id="content" class="d-flex flex-column h-100">
+
+			<!-- Navbar -->
+			<nav class="navbar navbar-expand-xl bg-dark navbar-dark bg-company-black">
+				<!-- Brand -->
+				<a class="navbar-brand ml-5" href="{% url 'search_job' %}"><img src="{% static 'pic/job-logo.png' %}" width="50"> JobProvider</a>
+
+				<!-- Toggler/collapsibe Button -->
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+
+				<!-- Navbar links -->
+				<div class="collapse navbar-collapse" id="collapsibleNavbar">
+					<!-- Left side link -->
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item dropdown mr-1">
+							<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+								Search
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="{% url 'search_job' %}">Jobs</a>
+								<a class="dropdown-item" href="{% url 'search_unemp' %}">Unemployed</a>
+							</div>
+						</li>
+
+                        {% if perms.jobprovider.change_job %}
+						<li class="nav-item">
+							<a class="nav-link" href="{% url 'manage_job' %}">ManageJobs</a>
+						</li>
+                        {% endif %}
+
+                        {% if perms.jobprovider.change_student %}
+                            {% if not user.student.is_unemp %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'change' %}">AddToUnemployed</a>
+                            </li>
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'change' %}">CancelUnemployed</a>
+                            </li>
+                            {% endif %}
+                        {% endif %}
+					</ul>
+
+					<!-- Right side link -->
+					<ul class="navbar-nav mr-5">
+                        {% if not user.is_authenticated %}
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+								Sign up
+							</a>
+
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="{% url 'register_student' %}">Student</a>
+								<a class="dropdown-item" href="{% url 'register_employer' %}">Employer</a>
+							</div>
+						</li>
+                        {% endif %}
+
+                        {% if not user.is_authenticated %}
+						<li class="nav-item">
+							<a class="nav-link" href="{% url 'mylogin' %}">Sign in</a>
+						</li>
+                        {% endif %}
+
+                        {% if user.is_authenticated %}
+						<li class="nav-item dropdown mr-2">
+							<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+								Setting
+							</a>
+							<div class="dropdown-menu">
+                                {% if perms.jobprovider.change_student %}
+								<a class="dropdown-item" href="{% url 'edit_student' %}">(S)Edit Profile</a>
+                                {% elif perms.jobprovider.change_employer %}
+								<a class="dropdown-item" href="{% url 'edit_employer' %}">(E)Edit Profile</a>
+                                {% endif %}
+								<a class="dropdown-item" href="{% url 'mylogout' %}">Sign out</a>
+							</div>
+						</li>
+                        {% endif %}
+					</ul>
+				</div>
+			</nav>
+            
+            <!-- overlay image -->
+			<section class="bgimage">
+				<div class="container-fluid">
+					<div class="row my-5">
+						<div class="col-12 text-center my-5 overlay">
+							<h3 class="display-4">Manage Job</h3>
+						</div>
+						<div class="col-12 text-center overlay">
+							Home <span class="fa fa-arrow-right"></span> Manage Job
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Main content -->
+			<div class="container flex-grow-1">
+                <div class="row mt-5">
+
+                    <!-- create Job -->
+                    <div class="col-lg-5">
+                        <div class="container my-5" style="background-color: white;">
+                            <div class="card" style="background-color: rgba(253, 253, 253, 0.8);">
+                                <div class="card-body font-weight-bold">
+                                    <form action="{% url 'manage_job' %}" method="POST">
+                                        {% csrf_token %}
+                                    <h3 class="text-center">Create Job</h3>
+                                        {% if form.non_field_errors %}
+                                            <div class="row">
+                                                <div class="col">
+                                                    <div class="alert alert-danger" role="alert">
+                                                        {% for error in form.non_field_errors %}
+                                                            {{ error }} <br/>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- job title -->
+                                        {{ form.job_title|as_crispy_field }}
+
+                                        <!-- faculty -->
+                                        {{ form.faculty|as_crispy_field }}
+
+                                        <!-- age and gender -->
+                                        <div class="row">
+                                            <!-- age -->
+                                            <div class="col-6">
+                                                {{ form.age|as_crispy_field }}
+                                            </div>
+
+                                            <!-- gender -->
+                                            <div class="col-6">
+                                                {{ form.gender|as_crispy_field }}
+                                            </div>
+                                        </div>
+
+                                        <!-- address -->
+                                        {{ form.area|as_crispy_field }}
+
+
+                                        <!-- salary and job_type -->
+                                        <div class="row">
+                                            <!-- salary -->
+                                            <div class="col-6">
+                                                {{ form.salary|as_crispy_field }}
+                                            </div>
+
+                                            <!-- jobtype -->
+                                            <div class="col-6">
+                                                {{ form.job_type|as_crispy_field }}
+                                            </div>
+                                        </div>
+
+                                        <!-- other requirement -->
+{#                                        <div class="form-group">#}
+{#                                            <label for="other">Other Requirement: <button type=button class="btn btn-secondary" @click="addField" style="border-radius: 20px;">+</button></label>#}
+{##}
+{#                                            <span class="input-group mt-1" v-for="field in fields">#}
+{#                                                <input class="form-control" type="text" v-model="field.text" required>#}
+{#                                                <span class="input-group-btn">#}
+{#                                                    <button class="form-control btn btn-danger" type="button" @click="deleteField(field)">Delete</button>#}
+{#                                                </span>#}
+{#                                            </span>#}
+{#                                        </div>#}
+
+                                        
+                                        <!-- submit button -->
+                                        <button type="submit" class="btn btn-success mt-1">Create</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Creater job list -->
+                    <div class="col-lg-7">
+                        <div class="container my-5">
+
+                            <div class="row justify-content-center">
+
+                                <!-- Manage title -->
+                                <div class="col-12">
+                                    <div class="card" style="background-color: #24292e; border-radius: 0px;">
+                                        <div class="card-body mr-auto">
+                                            <h3 class="card-title font-weight-bold text-white">
+                                                Manage Jobs
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- job list -->
+                                {% if job_of_user %}
+                                    {% for job in job_of_user %}
+                                    <div class="col-md-12 main">
+                                        <div class="card d-flex flex-md-row" style="border-radius: 0px;">
+
+                                            <!-- flex item for job detail -->
+                                            <div class="card-body mr-auto">
+
+                                                <h5 class="card-title">
+                                                    <div>{{ job.job_title }}</div>
+                                                </h5>
+
+                                                <p class="card-text">
+                                                    <small class="text-muted"><span class="fa fa-briefcase"></span> Type:
+                                                        {% if job.job_type == '01' %}
+                                                        Part-time,
+                                                        {% elif job.job_type == '02' %}
+                                                        Internship,
+                                                        {% endif %}
+                                                    </small>
+                                                    <small class="text-muted"><span class="fa fa-money"></span> Salary: {{job.salary}}</small><br/>
+                                                    <small class="text-muted"><span class="fa fa-map-marker"></span> Address: {{ job.area }}</small><br/>
+                                                    <small class="text-muted"><span class="fa fa-male"></span> Gender:
+                                                        {% if job.gender == '01'%}
+                                                            Male
+                                                        {% elif job.gender == '02' %}
+                                                            Female
+                                                        {% else %}
+                                                            Any
+                                                        {% endif %}
+                                                    </small><br/>
+                                                    <small class="text-muted"><span class="fa fa-university"></span> Faculty:
+                                                        {% if job.faculty == '01' %}
+                                                        วิศวกรรมศาสตร์
+                                                        {% elif job.faculty == '02' %}
+                                                        สถาปัตยกรรมศาสตร์
+                                                        {% elif job.faculty == '03' %}
+                                                        ครุศาสตร์อุตสาหกรรมและเทคโนโลยี
+                                                        {% elif job.faculty == '04' %}
+                                                        เทคโนโลยีการเกษตร
+                                                        {% elif job.faculty == '05' %}
+                                                        วิทยาศาสตร์
+                                                        {% elif job.faculty == '06' %}
+                                                        อุตสาหกรรมเกษตร
+                                                        {% elif job.faculty == '07' %}
+                                                        เทคโนโลยีสารสนเทศ
+                                                        {% elif job.faculty == '08' %}
+                                                        วิทยาลัยนานาชาติ
+                                                        {% elif job.faculty == '09' %}
+                                                        วิทยาลัยนาโนเทคโนโลยี
+                                                        {% elif job.faculty == '10' %}
+                                                        วิทยาลัยนวัตกรรมการผลิตขั้นสูง
+                                                        {% elif job.faculty == '11' %}
+                                                        การบริหารและจัดการ
+                                                        {% elif job.faculty == '12' %}
+                                                        วิทยาลัยอุตสาหกรรมการบินนานาชาติ
+                                                        {% elif job.faculty == '13' %}
+                                                        ศิลปศาสตร์
+                                                        {% elif job.faculty == '14' %}
+                                                        แพทยศาสตร์
+                                                        {% elif job.faculty == '15' %}
+                                                        วิทยาลัยวิศวกรรมสังคีต
+                                                        {% elif job.faculty == '16' %}
+                                                            Any
+                                                        {% endif %}
+                                                    </small><br/>
+                                                    <small class="text-muted"><span class="fa fa-envelope-open"></span> Other Requirement:
+                                                        <ul>
+                                                            {% for requirement in requirement_all %}
+                                                                {% if requirement.job_id == job.id %}
+                                                                    <li>{{ requirement.requirement }}</li>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        <a href="{% url 'add_req' job_id=job.id %}"><span class="fa fa-plus"></span></a>
+                                                        </ul>
+                                                    </small>
+                                                </p>
+                                            </div>
+
+                                            <!-- flex item for Delete button -->
+                                            <div class="card-text my-md-auto mx-auto my-2">
+                                                <a href="{% url 'delete' job_id=job.id %}" class="btn btn-danger my-auto">Delete <span class="fa fa-trash"></span></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="container text-center mt-3"><span class="fa fa-arrow-left"></span> Create your job first</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+
+			<!-- Footer -->
+			<div class="footer">
+				<div class="container text-center text-lg-right">
+					<a class="logo ml-1" href="https://www.it.kmitl.ac.th/th/" target="_blank"><img src="{% static 'pic/it.png' %}" height="30"></a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+    {% if success %}
+        <div class="myAlert-top alert alert-success">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          <strong>Success!</strong><br/> Your job have been created
+        </div>
+
+        <script type="text/javascript">
+            $(window).on('load',function myAlertTop(){
+              $(".myAlert-top").show();
+              setTimeout(function(){
+                $(".myAlert-top").hide();
+              }, 4000);
+            });
+        </script>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        {% for i in form.non_field_errors %}
+            <div class="myAlert-top alert alert-danger">
+              <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+              <strong>Error:</strong><br/> {{ i }}
+            </div>
+
+            <script type="text/javascript">
+                $(window).on('load',function myAlertTop(){
+                  $(".myAlert-top").show();
+                  setTimeout(function(){
+                    $(".myAlert-top").hide();
+                  }, 4000);
+                });
+            </script>
+        {% endfor %}
+    {% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.22/dist/vue.js"></script>
+	<script>
+		var vm = new Vue({
+			el: "#app",
+            delimiters: ["[[", "]]"],
+			data:{
+                fields: [],
+                facultys: [
+					{'faculty':'วิศวกรรมศาสตร์'},
+					{'faculty':'สถาปัตยกรรมศาสตร์'},
+					{'faculty':'ครุศาสตร์อุตสาหกรรมและเทคโนโลยี'},
+					{'faculty':'เทคโนโลยีการเกษตร'},
+					{'faculty':'วิทยาศาสตร์'},
+					{'faculty':'อุตสาหกรรมเกษตร'},
+					{'faculty':'เทคโนโลยีสารสนเทศ'},
+					{'faculty':'วิทยาลัยนานาชาติ'},
+					{'faculty':'วิทยาลัยนาโนเทคโนโลยี'},
+					{'faculty':'วิทยาลัยนวัตกรรมการผลิตขั้นสูง'},
+					{'faculty':'การบริหารและจัดการ'},
+					{'faculty':'วิทยาลัยอุตสาหกรรมการบินนานาชาติ'},
+					{'faculty':'ศิลปศาสตร์'},
+					{'faculty':'แพทยศาสตร์'},
+					{'faculty':'วิทยาลัยวิศวกรรมสังคีต'},
+				],
+                jobs: [
+                {
+                    id: 1,
+                    title: "Thor: Ragnarok",
+                    faculty: "เทคโนโลยีสารสนเทศ",
+                    age: 20,
+                    address: "FBT",
+                    gender: "Male",
+                    type: "Part Time",
+                    salary: 15000,
+                    detail: [
+                        "eiajsdhkgkjashd",
+                        "asdlka;sjd;as;ldk;asd;l;jasd;",
+                        "asldkjakhsjhadl"
+                    ],
+                    company: "eieiza"
+                },
+                {
+                    id: 2,
+                    title: "Wonder Woman",
+                    faculty: "เทคโนโลยีสารสนเทศ",
+                    age: 20,
+                    address: "address",
+                    gender: "Male",
+                    type: "Part Time",
+                    salary: 15000,
+                    detail: [
+                        "eiajsdhkgkjashd",
+                        "asdlka;sjd;as;ldk;asd;l;jasd;",
+                        "asldkjakhsjhadl"
+                    ],
+                    company: "eieiza"
+                },
+                {
+                    id: 3,
+                    title: "Guardians of the Galaxy Vol. 2",
+                    faculty: "เทคโนโลยีสารสนเทศ",
+                    age: 20,
+                    address: "address",
+                    gender: "Male",
+                    type: "Part Time",
+                    salary: 15000,
+                    detail: [
+                        "eiajsdhkgkjashd",
+                        "asdlka;sjd;as;ldk;asd;l;jasd;",
+                        "asldkjakhsjhadl"
+                    ],
+                    company: "eieiza"
+                },
+                {
+                    id: 4,
+                    title: "Logan",
+                    faculty: "เทคโนโลยีสารสนเทศ",
+                    age: 20,
+                    address: "address",
+                    gender: "Male",
+                    type: "Internship",
+                    salary: 20000,
+                    detail: [
+                        "eiajsdhkgkjashd",
+                        "asdlka;sjd;as;ldk;asd;l;jasd;",
+                        "asldkjakhsjhadl"
+                    ],
+                    company: "eieiza"
+                },]
+			},
+            methods: {
+                addField(){
+                this.fields.push(
+                    {
+                        text: '',
+                        value: 0
+                    }
+                )
+                },
+                deleteField(field){
+                    let index = this.fields.indexOf(field)
+                    this.fields.splice(index, 1)
+                },
+            },
+		})
+	</script>
+</body>
+</html>

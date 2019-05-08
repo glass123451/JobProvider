@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+{% load static %}
+{% load crispy_forms_tags %}
+<html lang="en" class="h-100">
+<head>
+	<link rel="icon" href="{% static 'pic/job-logo.png' %}">
+	<title>Join JobProvider</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
+	<link rel="stylesheet" href="{% static 'css/main_style.css' %}">
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<style>
+		.bgimage {
+			width:100%;
+			height:500px;
+			background: url("{% static 'pic/mango.jpg' %}");
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size:cover;
+			background-attachment: fixed;
+		}
+
+		.overlay {
+			color:White;
+			text-shadow:1px 1px #333;
+		}
+        .myAlert-top{
+            position: fixed;
+            top: 8px;
+            right:2%;
+            width: 30%;
+        }
+
+        .alert{
+            display: none;
+        }
+	</style>
+</head>
+
+<body class="h-100">
+	<div id="app" class="h-100">
+		<div id="content" class="d-flex flex-column h-100">
+
+			<!-- Navbar -->
+			<nav class="navbar navbar-expand-xl bg-dark navbar-dark bg-company-black">
+				<!-- Brand -->
+				<a class="navbar-brand ml-5" href="{% url 'search_job' %}"><img src="{% static 'pic/job-logo.png' %}" width="50"> JobProvider</a>
+
+				<!-- Toggler/collapsibe Button -->
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+
+				<!-- Navbar links -->
+				<div class="collapse navbar-collapse" id="collapsibleNavbar">
+					<!-- Left side link -->
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item dropdown mr-1">
+							<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+								Search
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="{% url 'search_job' %}">Jobs</a>
+								<a class="dropdown-item" href="{% url 'search_unemp' %}">Unemployed</a>
+							</div>
+						</li>
+
+                        {% if perms.jobprovider.change_job %}
+						<li class="nav-item">
+							<a class="nav-link" href="{% url 'manage_job' %}">ManageJobs</a>
+						</li>
+                        {% endif %}
+
+                        {% if perms.jobprovider.change_student %}
+                            {% if not user.student.is_unemp %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'change' %}">AddToUnemployed</a>
+                            </li>
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'change' %}">CancelUnemployed</a>
+                            </li>
+                            {% endif %}
+                        {% endif %}
+					</ul>
+
+					<!-- Right side link -->
+					<ul class="navbar-nav mr-5">
+                        {% if not user.is_authenticated %}
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+								Sign up
+							</a>
+
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="{% url 'register_student' %}">Student</a>
+								<a class="dropdown-item" href="{% url 'register_employer' %}">Employer</a>
+							</div>
+						</li>
+                        {% endif %}
+
+                        {% if not user.is_authenticated %}
+						<li class="nav-item">
+							<a class="nav-link" href="{% url 'mylogin' %}">Sign in</a>
+						</li>
+                        {% endif %}
+
+                        {% if user.is_authenticated %}
+						<li class="nav-item dropdown mr-2">
+							<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+								Setting
+							</a>
+							<div class="dropdown-menu">
+                                {% if perms.jobprovider.change_student %}
+								<a class="dropdown-item" href="{% url 'edit_student' %}">(S)Edit Profile</a>
+                                {% elif perms.jobprovider.change_employer %}
+								<a class="dropdown-item" href="{% url 'edit_employer' %}">(E)Edit Profile</a>
+                                {% endif %}
+								<a class="dropdown-item" href="{% url 'mylogout' %}">Sign out</a>
+							</div>
+						</li>
+                        {% endif %}
+					</ul>
+				</div>
+			</nav>
+
+			<!-- overlay image -->
+			<section class="bgimage">
+				<div class="container-fluid">
+					<div class="row my-5">
+						<div class="col-12 text-center my-5 overlay">
+							<h3 class="display-4">Edit Profile</h3>
+						</div>
+						<div class="col-12 text-center overlay">
+							Home <span class="fa fa-arrow-right"></span> Edit Profile <span class="fa fa-arrow-right"></span> Add Skill
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Main content -->
+			<div class="container flex-grow-1 px-5">
+				<div class="card my-5 shadow-sm">
+					<div class="card-body mx-auto font-weight-bold" style="max-width: 500px;">
+						<form action="{% url 'add_skill' %}" method="POST">
+                            {% csrf_token %}
+						<h1><span class="fa fa-user-plus"></span> Add Skill</h1>
+
+							<!-- skill field -->
+							<div class="form-group">
+                                <label for="skill">Skill:</label>
+                                <input type="text" class="form-control" name="skill" placeholder="Skill" required>
+                            </div>
+
+							<!-- submit button -->
+							<button type="submit" class="btn btn-success mt-1">Add Skill</button>
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<!-- Footer -->
+			<div class="footer">
+				<div class="container text-center text-lg-right">
+					<a class="logo ml-1" href="https://www.it.kmitl.ac.th/th/" target="_blank"><img src="{% static 'pic/it.png' %}" height="30"></a>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+    {% if success %}
+        <div class="myAlert-top alert alert-success">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          <strong>Success!</strong><br/> Your skill have been added
+        </div>
+
+        <script type="text/javascript">
+            $(window).on('load',function myAlertTop(){
+              $(".myAlert-top").show();
+              setTimeout(function(){
+                $(".myAlert-top").hide();
+              }, 4000);
+            });
+        </script>
+    {% endif %}
+</body>
+</html>
